@@ -27,3 +27,22 @@ button{padding:12px 14px;border-radius:12px;border:1px solid var(--border);backg
 button:active{transform:scale(.98)}
 .controls{display:flex;gap:10px;align-items:center;padding:10px 16px;border-top:1px solid var(--border)}
 #micStatus{color:var(--muted);font-size:12px}
+/* 🔒 Force avatar size (ChatGPT style) */
+.logoImg {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  display: block;
+}
+
+/* ❌ Prevent any image from going fullscreen */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Safety: chat area ke andar images disable */
+.chat img {
+  display: none;
+}
