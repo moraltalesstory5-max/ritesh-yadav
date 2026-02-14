@@ -2,31 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ritesh.ai</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ritesh.ai (Gemini)</title>
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <div class="app">
-    <header class="topbar">
+    <aside class="sidebar">
       <div class="brand">
-        <div class="logo">🤖</div>
+        <div class="logo">R</div>
         <div>
           <div class="title">Ritesh.ai</div>
-          <div class="sub">Local Gemini Chat</div>
+          <div class="sub">Real AI (Gemini)</div>
         </div>
       </div>
-      <div class="status" id="status">Offline</div>
-    </header>
 
-    <main class="chat" id="chat"></main>
+      <div class="panel">
+        <div id="micStatus" class="status">Mic: OFF</div>
+        <div class="btnRow">
+          <button id="startListen" class="btn">🎙 Start</button>
+          <button id="stopListen" class="btn btnGhost">⛔ Stop</button>
+        </div>
+        <div class="hint">
+          Wake word: <b>“Ritesh …”</b><br/>
+          (First time click required)
+        </div>
+      </div>
 
-    <footer class="composer">
-      <input id="input" type="text" placeholder="Type your message..." autocomplete="off" />
-      <button id="send">Send</button>
-    </footer>
+      <div class="panel small">
+        <div class="hint">
+          Tips:<br/>
+          • Chrome use karo<br/>
+          • Mic permission Allow<br/>
+          • HTTPS pe mic best chalta
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topTitle">Chat</div>
+        <div class="topRight">🟢 Online</div>
+      </header>
+
+      <section id="chat" class="chat"></section>
+
+      <footer class="composer">
+        <input id="inp" class="inp" placeholder="Message Ritesh.ai..." autocomplete="off" />
+        <button id="sendBtn" class="send">Send</button>
+      </footer>
+    </main>
   </div>
 
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>
