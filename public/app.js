@@ -5,139 +5,87 @@ const startListen = document.getElementById("startListen");
 const stopListen = document.getElementById("stopListen");
 const micStatus = document.getElementById("micStatus");
 
-function addMsg(role, text){
-  const row = document.createElement("div");
-  row.className = row ${role};
-  const b = document.createElement("div");
-  b.className = "bubble";
-  b.textContent = text;
-  row.appendChild(b);
-  chat.appendChild(row);
+function add(role, text){
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  div.textContent = text;
+  chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-function setTyping(on){
-  let el = document.getElementById("typing");
-  if(on){
-    if(!el){
-      el = document.createElement("div");
-      el.id = "typing";
-      el.className = "typing";
-      el.textContent = "Ritesh.ai is typing…";
-      chat.appendChild(el);
-      chat.scrollTop = chat.scrollHeight;
-    }
-  } else {
-    if(el) el.remove();
-  }
-}
-
-// ✅ Female Indian voice (if available)
-function speak(text){
-  try{
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "hi-IN";
-    u.rate = 1.0;
-    u.pitch = 0.95;
-
-    // voices load async sometimes
-    const pick = () => {
-      const voices = speechSynthesis.getVoices();
-      const v =
-        voices.find(v => /hi-IN/i.test(v.lang) && /female|woman|Hindi|हिंदी|Google/i.test(v.name)) ||
-        voices.find(v => /hi-IN/i.test(v.lang)) ||
-        voices.find(v => /en-IN/i.test(v.lang));
-      if(v) u.voice = v;
-      speechSynthesis.cancel();
-      speechSynthesis.speak(u);
-    };
-
-    if (speechSynthesis.getVoices().length === 0) {
-      speechSynthesis.onvoiceschanged = pick;
-      setTimeout(pick, 300);
-    } else {
-      pick();
-    }
-  }catch(e){}
-}
-
-async function sendMessage(msg){
-  const text = (msg || inp.value || "").trim();
-  if(!text) return;
-
+async function send(text){
+  const msg = (text || inp.value || "").trim();
+  if(!msg) return;
   inp.value = "";
-  addMsg("user", text);
-  setTyping(true);
+  add("user", msg);
 
   try{
     const r = await fetch("/api/chat", {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({ message: msg })
     });
-
-    const data = await r.json().catch(()=> ({}));
-    const reply = data?.reply || "Ritesh boss, reply nahi aaya 😕";
-    setTyping(false);
-    addMsg("ai", reply);
-    speak(reply);
+    const data = await r.json();
+    add("ai", data.reply || "No reply");
   }catch(e){
-    setTyping(false);
-    addMsg("ai","Ritesh boss, network/server error.");
+    add("ai","Network/server error");
   }
 }
 
-sendBtn.addEventListener("click", ()=>sendMessage());
-inp.addEventListener("keydown", (e)=>{ if(e.key==="Enter") sendMessage(); });
+sendBtn.onclick = ()=>send();
+inp.addEventListener("keydown", e => { if(e.key==="Enter") send(); });
 
-// =======================
-// ✅ Wake word listening
-// NOTE: first user gesture needed.
-// =======================
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+// ===== Wake word (needs click first) =====
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let rec = null;
 let listening = false;
-let lastSentAt = 0;
 
 function setMic(on){
-  micStatus.textContent = on ? "Mic: ON (Say: Ritesh …)" : "Mic: OFF";
-  micStatus.className = on ? "status on" : "status";
+  micStatus.textContent = on ? "Mic: ON" : "Mic: OFF";
 }
 
 function startRec(){
-  if(!SpeechRecognition){
-    addMsg("ai","Ritesh boss, is browser me Speech Recognition support nahi hai. Chrome use karo.");
-    return;
-  }
-
-  if(rec){
-    try{ rec.stop(); }catch(e){}
-    rec = null;
-  }
-
-  rec = new SpeechRecognition();
-  rec.lang = "en-IN";      // Hinglish detect
+  if(!SR){ add("ai","SpeechRecognition not supported. Use Chrome."); return; }
+  rec = new SR();
+  rec.lang = "en-IN";
   rec.continuous = true;
   rec.interimResults = true;
 
   rec.onstart = ()=> setMic(true);
+  rec.onend = ()=> { if(listening) setTimeout(startRec, 300); else setMic(false); };
+  rec.onerror = ()=> { if(listening) { try{rec.stop()}catch{} } };
 
-  rec.onresult = (event)=>{
-    const last = event.results[event.results.length - 1];
-    const text = (last[0]?.transcript || "").trim();
-    if(!text) return;
+  rec.onresult = (ev)=>{
+    const last = ev.results[ev.results.length-1];
+    const t = (last[0]?.transcript || "").trim();
+    if(!t) return;
+    if(t.toLowerCase().includes("ritesh")){
+      const cmd = t.replace(/ritesh/ig,"").trim();
+      if(cmd.length >= 2) send(cmd);
+      else add("ai","Haan Ritesh boss 🙂 bolo kya kaam hai?");
+    }
+  };
 
-    const low = text.toLowerCase();
+  try{ rec.start(); }catch(e){}
+}
 
-    if(low.includes("ritesh")){
-      // prevent spam sends
-      const now = Date.now();
-      if (now - lastSentAt < 1500) return;
+startListen.onclick = async ()=>{
+  try{
+    // Force permission popup
+    await navigator.mediaDevices.getUserMedia({ audio:true });
+    listening = true;
+    startRec();
+    add("ai","Listening started. Ab bolo: “Ritesh …”");
+  }catch(e){
+    add("ai","Mic permission denied. Chrome site settings me Allow karo.");
+  }
+};
 
-      const cmd = text.replace(/ritesh/ig,"").trim();
+stopListen.onclick = ()=>{
+  listening = false;
+  try{ rec && rec.stop(); }catch(e){}
+  setMic(false);
+  add("ai","Listening stopped.");
+};
 
-      if(cmd.length >= 2){
-        lastSentAt = now;
-        sendMessage(cmd);
-      } else {
-        addMsg("ai","Haan Ritesh boss 🙂 bolo kya kaam …
+add("ai","Haan Ritesh boss 🙂 Type karo ya Start click karke “Ritesh …” bolo.");
