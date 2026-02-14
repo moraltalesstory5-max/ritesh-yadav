@@ -1,51 +1,72 @@
 const express = require("express");
 const path = require("path");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const app = express();
-app.use(express.json({ limit: "1mb" }));
+const PORT = process.env.PORT || 3000;
 
-// ✅ Serve UI
+app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ Home
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// ✅ Health
-app.get("/health", (req, res) => res.send("OK"));
-
-// ✅ Chat (Gemini)
 app.post("/api/chat", async (req, res) => {
   try {
     const message = String(req.body?.message || "").trim();
-    if (!message) return res.status(400).json({ reply: "Ritesh boss, kuch likho 🙂" });
+    if (!message) return res.json({ reply: "Ritesh boss, kuch likho 🙂" });
 
-    const key = process.env.GEMINI_API_KEY;
+    const key = String(process.env.GEMINI_API_KEY || "").trim();
     if (!key) {
       return res.status(500).json({
-        reply: "Ritesh boss, GEMINI_API_KEY missing hai. Railway Variables ya local env me set karo."
+        reply: "Ritesh boss, GEMINI_API_KEY missing hai. .env me key paste karo aur server restart karo."
       });
     }
 
-    const genAI = new GoogleGenerativeAI(key);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // ✅ Official Gemini API REST endpoint + model (as per docs example)
+    const url =
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent"; // 1
 
-    const SYSTEM =
-      "You are Ritesh.ai. Reply in Hinglish (70% Hindi, 30% English). " +
-      "Be calm, short, practical.";
+    const body = {
+      system_instruction: {
+        parts: [{ text: "You are Ritesh.ai. Reply in Hinglish. Be helpful, clear, practical." }]
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: message }]
+        }
+      ]
+    };
 
-    const prompt = ${SYSTEM}\n\nUser: ${message}\nAssistant:;
-    const result = await model.generateContent(prompt);
-    const reply = result?.response?.text?.() || "Ritesh boss, empty reply aaya.";
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": key
+      },
+      body: JSON.stringify(body)
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      // Gemini returns { error: { message, ... } }
+      const msg = data?.error?.message || JSON.stringify(data);
+      return res.status(resp.status).json({ reply: "Ritesh boss, Gemini error: " + msg });
+    }
+
+    const reply =
+      data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ||
+      "Ritesh boss, empty reply aaya 😕";
 
     return res.json({ reply });
   } catch (e) {
-    const msg = String(e?.message || e);
-    return res.status(500).json({ reply: "Ritesh boss, Gemini error: " + msg });
+    return res.status(500).json({ reply: "Ritesh boss, server error: " + (e?.message || e) });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("✅ Running on port:", PORT));
+app.get("/health", (req, res) => res.send("OK"));
+
+app.listen(PORT, () => {
+  console.log("✅ Ritesh.ai running at http://localhost:" + PORT);
+});
