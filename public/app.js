@@ -1,91 +1,62 @@
 const chat = document.getElementById("chat");
-const inp = document.getElementById("inp");
-const sendBtn = document.getElementById("sendBtn");
-const startListen = document.getElementById("startListen");
-const stopListen = document.getElementById("stopListen");
-const micStatus = document.getElementById("micStatus");
+const input = document.getElementById("input");
+const sendBtn = document.getElementById("send");
+const statusEl = document.getElementById("status");
 
-function add(role, text){
-  const div = document.createElement("div");
-  div.className = "msg " + role;
-  div.textContent = text;
-  chat.appendChild(div);
+function addMsg(role, text) {
+  const wrap = document.createElement("div");
+  wrap.className = "msg " + role;
+  wrap.textContent = text;
+  chat.appendChild(wrap);
   chat.scrollTop = chat.scrollHeight;
+  return wrap;
 }
 
-async function send(text){
-  const msg = (text || inp.value || "").trim();
-  if(!msg) return;
-  inp.value = "";
-  add("user", msg);
+async function ping() {
+  try {
+    const r = await fetch("/health");
+    if (r.ok) {
+      statusEl.textContent = "Online";
+      statusEl.classList.add("on");
+    } else throw new Error();
+  } catch {
+    statusEl.textContent = "Offline";
+    statusEl.classList.remove("on");
+  }
+}
 
-  try{
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  addMsg("user", text);
+
+  sendBtn.disabled = true;
+  const typing = addMsg("ai", "Typing...");
+
+  try {
     const r = await fetch("/api/chat", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ message: msg })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
     });
+
     const data = await r.json();
-    add("ai", data.reply || "No reply");
-  }catch(e){
-    add("ai","Network/server error");
+    typing.textContent = data.reply || "Ritesh boss, koi reply nahi aaya.";
+  } catch (e) {
+    typing.textContent = "Ritesh boss, network/server error: " + (e?.message || e);
+  } finally {
+    sendBtn.disabled = false;
+    input.focus();
+    chat.scrollTop = chat.scrollHeight;
   }
 }
 
-sendBtn.onclick = ()=>send();
-inp.addEventListener("keydown", e => { if(e.key==="Enter") send(); });
+sendBtn.addEventListener("click", sendMessage);
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
 
-// ===== Wake word (needs click first) =====
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec = null;
-let listening = false;
-
-function setMic(on){
-  micStatus.textContent = on ? "Mic: ON" : "Mic: OFF";
-}
-
-function startRec(){
-  if(!SR){ add("ai","SpeechRecognition not supported. Use Chrome."); return; }
-  rec = new SR();
-  rec.lang = "en-IN";
-  rec.continuous = true;
-  rec.interimResults = true;
-
-  rec.onstart = ()=> setMic(true);
-  rec.onend = ()=> { if(listening) setTimeout(startRec, 300); else setMic(false); };
-  rec.onerror = ()=> { if(listening) { try{rec.stop()}catch{} } };
-
-  rec.onresult = (ev)=>{
-    const last = ev.results[ev.results.length-1];
-    const t = (last[0]?.transcript || "").trim();
-    if(!t) return;
-    if(t.toLowerCase().includes("ritesh")){
-      const cmd = t.replace(/ritesh/ig,"").trim();
-      if(cmd.length >= 2) send(cmd);
-      else add("ai","Haan Ritesh boss 🙂 bolo kya kaam hai?");
-    }
-  };
-
-  try{ rec.start(); }catch(e){}
-}
-
-startListen.onclick = async ()=>{
-  try{
-    // Force permission popup
-    await navigator.mediaDevices.getUserMedia({ audio:true });
-    listening = true;
-    startRec();
-    add("ai","Listening started. Ab bolo: “Ritesh …”");
-  }catch(e){
-    add("ai","Mic permission denied. Chrome site settings me Allow karo.");
-  }
-};
-
-stopListen.onclick = ()=>{
-  listening = false;
-  try{ rec && rec.stop(); }catch(e){}
-  setMic(false);
-  add("ai","Listening stopped.");
-};
-
-add("ai","Haan Ritesh boss 🙂 Type karo ya Start click karke “Ritesh …” bolo.");
+addMsg("ai", "Ritesh boss, welcome! Ab kuch bhi pucho — main Gemini se real answer dunga. ✅");
+ping();
+setInterval(ping, 3000);
