@@ -56,7 +56,5 @@ sendBtn.addEventListener("click", sendMessage);
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter") sendMessage();
 });
-
-addMsg("ai", "Ritesh boss, welcome! Ab kuch bhi pucho — main Gemini se real answer dunga. ✅");
 ping();
 setInterval(ping, 3000);
