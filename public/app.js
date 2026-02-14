@@ -62,7 +62,7 @@ async function sendMessage() {
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const r = await fetch("/api/chat", {
+    const r = await fetch("/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text }),
