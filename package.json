@@ -1,9 +1,8 @@
 {
-  "name": "ritesh-ai-real-gemini",
+  "name": "ritesh-ai",
   "version": "1.0.0",
-  "description": "Local chat webapp using Google Gemini API (real AI replies).",
+  "type": "module",
   "main": "server.js",
-  "type": "commonjs",
   "scripts": {
     "start": "node server.js"
   },
