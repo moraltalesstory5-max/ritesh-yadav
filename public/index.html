@@ -20,27 +20,43 @@
     </header>
 
     <main class="chat" id="chat">
-  <!-- HOME SCREEN -->
-  <section class="home" id="home"hidden>
-    <div class="home-title">What can I help with?</div>
+      <!-- HOME SCREEN -->
+      <section class="home" id="home" hidden>
+        <div class="home-title">What can I help with?</div>
 
-    <div class="quick-grid">
-      <button class="quick" data-mode="image">🖼️ Create image</button>
-      <button class="quick" data-mode="write">✍️ Help me write</button>
-      <button class="quick" data-mode="summary">📝 Summarize text</button>
-      <button class="quick" data-mode="surprise">🎁 Surprise me</button>
-    </div>
-  </section>
+        <div class="quick-grid">
+          <button class="quick" id="qImage" type="button">
+            <span class="q-ic">🖼️</span>
+            <span class="q-txt">Create image</span>
+          </button>
 
-  <!-- MESSAGES WILL COME HERE -->
-  <section id="messages"></section>
-</main>
-    <!-- ChatGPT style composer -->
+          <button class="quick" id="qWrite" type="button">
+            <span class="q-ic">✍️</span>
+            <span class="q-txt">Help me write</span>
+          </button>
+
+          <button class="quick" id="qSumm" type="button">
+            <span class="q-ic">📝</span>
+            <span class="q-txt">Summarize text</span>
+          </button>
+
+          <button class="quick" id="qSurp" type="button">
+            <span class="q-ic">🎁</span>
+            <span class="q-txt">Surprise me</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- MESSAGES -->
+      <div id="messages"></div>
+    </main>
+
+    <!-- COMPOSER -->
     <footer class="composer">
       <input type="file" id="fileInput" hidden />
 
-      <button id="uploadBtn" class="icon-btn" title="Upload file">📎</button>
-      <button id="micBtn" class="icon-btn" title="Voice input">🎙️</button>
+      <button id="uploadBtn" class="icon-btn" title="Upload file" type="button">📎</button>
+      <button id="micBtn" class="icon-btn" title="Voice input" type="button">🎙️</button>
 
       <input
         id="input"
@@ -49,7 +65,7 @@
         autocomplete="off"
       />
 
-      <button id="send" class="send-btn">➤</button>
+      <button id="send" class="send-btn" type="button">➤</button>
     </footer>
   </div>
 
