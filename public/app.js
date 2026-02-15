@@ -1,60 +1,52 @@
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("send");
-const statusEl = document.getElementById("status");
+const uploadBtn = document.getElementById("uploadBtn");
+const fileInput = document.getElementById("fileInput");
+const micBtn = document.getElementById("micBtn");
 
 function addMsg(role, text) {
-  const wrap = document.createElement("div");
-  wrap.className = "msg " + role;
-  wrap.textContent = text;
-  chat.appendChild(wrap);
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  div.textContent = text;
+  chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
-  return wrap;
 }
 
-async function ping() {
-  try {
-    const r = await fetch("/health");
-    if (r.ok) {
-      statusEl.textContent = "Online";
-      statusEl.classList.add("on");
-    } else throw new Error();
-  } catch {
-    statusEl.textContent = "Offline";
-    statusEl.classList.remove("on");
-  }
-}
-
-async function sendMessage() {
+sendBtn.onclick = () => {
   const text = input.value.trim();
   if (!text) return;
   input.value = "";
   addMsg("user", text);
 
-  sendBtn.disabled = true;
-  const typing = addMsg("ai", "Typing...");
+  // demo AI reply
+  setTimeout(() => {
+    addMsg("ai", "Ritesh boss, ye demo reply hai 🙂");
+  }, 700);
+};
 
-  try {
-    const r = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
-    });
+// 📎 File upload
+uploadBtn.onclick = () => fileInput.click();
 
-    const data = await r.json();
-    typing.textContent = data.reply || "Ritesh boss, koi reply nahi aaya.";
-  } catch (e) {
-    typing.textContent = "Ritesh boss, network/server error: " + (e?.message || e);
-  } finally {
-    sendBtn.disabled = false;
-    input.focus();
-    chat.scrollTop = chat.scrollHeight;
+fileInput.onchange = () => {
+  const file = fileInput.files[0];
+  if (file) {
+    addMsg("user", 📎 File uploaded: ${file.name});
   }
-}
+};
 
-sendBtn.addEventListener("click", sendMessage);
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
-ping();
-setInterval(ping, 3000);
+// 🎙️ Voice input
+let recognition;
+if ("webkitSpeechRecognition" in window) {
+  recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-IN";
+  recognition.continuous = false;
+
+  micBtn.onclick = () => recognition.start();
+
+  recognition.onresult = (e) => {
+    input.value = e.results[0][0].transcript;
+  };
+} else {
+  micBtn.onclick = () => alert("Voice not supported on this browser");
+}
