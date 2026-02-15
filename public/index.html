@@ -1,109 +1,44 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Ritesh AI</title>
-  <style>
-    body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
-    .wrap{width:900px;max-width:92%;text-align:center}
-    h1{font-size:54px;margin:0 0 30px 0;font-weight:800}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;justify-content:center}
-    .card{
-      height:86px;border-radius:60px;background:#0b0b0b;border:1px solid #222;
-      display:flex;align-items:center;justify-content:center;gap:14px;
-      font-size:22px;cursor:pointer;transition:.2s;
-      color:#dcdcdc;
-    }
-    .card:hover{background:#101010;border-color:#333}
-    .icon{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px}
-    .green{color:#49e36a}
-    .pink{color:#ff5fd7}
-    .orange{color:#ff9a3c}
-    .blue{color:#66d6ff}
-    .panel{margin-top:24px;text-align:left}
-    textarea{
-      width:100%;height:140px;background:#0b0b0b;border:1px solid #222;border-radius:14px;
-      color:#fff;padding:14px;font-size:16px;outline:none;
-    }
-    .row{display:flex;gap:12px;margin-top:12px}
-    button{
-      padding:12px 18px;border-radius:12px;border:1px solid #222;background:#111;color:#fff;cursor:pointer
-    }
-    button:hover{background:#191919}
-    .out{margin-top:14px;background:#0b0b0b;border:1px solid #222;border-radius:14px;padding:14px;min-height:90px;white-space:pre-wrap}
-    .muted{opacity:.75;margin-top:10px}
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ritesh.ai</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="wrap">
-    <h1>What can I help with?</h1>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">🤖</div>
+        <div>
+          <div class="title">Ritesh.ai</div>
+          <div class="sub">AI Assistant</div>
+        </div>
+      </div>
+      <div class="status" id="status">Online</div>
+    </header>
 
-    <div class="grid">
-      <div class="card" onclick="setMode('image')">
-        <div class="icon green">🖼️</div> Create image
-      </div>
-      <div class="card" onclick="setMode('write')">
-        <div class="icon pink">✍️</div> Help me write
-      </div>
-      <div class="card" onclick="setMode('summary')">
-        <div class="icon orange">📝</div> Summarize text
-      </div>
-      <div class="card" onclick="setMode('surprise')">
-        <div class="icon blue">🎁</div> Surprise me
-      </div>
-    </div>
+    <main class="chat" id="chat"></main>
 
-    <div class="panel">
-      <div class="muted">Selected mode: <span id="modeText">write</span></div>
-      <textarea id="input" placeholder="Type your message..."></textarea>
+    <!-- ChatGPT style composer -->
+    <footer class="composer">
+      <input type="file" id="fileInput" hidden />
 
-      <div class="row">
-        <button onclick="runAI()">Run</button>
-        <button onclick="clearAll()">Clear</button>
-      </div>
+      <button id="uploadBtn" class="icon-btn" title="Upload file">📎</button>
+      <button id="micBtn" class="icon-btn" title="Voice input">🎙️</button>
 
-      <div class="out" id="output">Output will show here...</div>
-    </div>
+      <input
+        id="input"
+        type="text"
+        placeholder="Message Ritesh.ai…"
+        autocomplete="off"
+      />
+
+      <button id="send" class="send-btn" title="Send">➤</button>
+    </footer>
   </div>
 
-  <script>
-    let MODE = "write";
-
-    function setMode(m){
-      MODE = m;
-      document.getElementById("modeText").innerText = m;
-      document.getElementById("output").innerText = "Mode selected: " + m;
-    }
-
-    function clearAll(){
-      document.getElementById("input").value = "";
-      document.getElementById("output").innerText = "Output will show here...";
-    }
-
-    async function runAI(){
-      const text = document.getElementById("input").value.trim();
-      const out = document.getElementById("output");
-      if(!text){ out.innerText = "Pehle kuch type karo."; return; }
-
-      out.innerText = "Thinking...";
-
-      // ✅ YAHAN APNA BACKEND API URL DAALO
-      const API_URL = "YOUR_AI_API_URL_HERE";
-
-      try{
-        const res = await fetch(API_URL,{
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ mode: MODE, text })
-        });
-
-        const data = await res.json();
-        out.innerText = data.output || data.result || JSON.stringify(data,null,2);
-      }catch(e){
-        out.innerText = "Error: " + e.message;
-      }
-    }
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
