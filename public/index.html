@@ -8,41 +8,55 @@
 </head>
 <body>
   <div class="app">
+    <!-- TOP BAR (ChatGPT-like) -->
     <header class="topbar">
-      <div class="brand">
-        <div class="logo">🤖</div>
-        <div>
-          <div class="title">Ritesh.ai</div>
-          <div class="sub">AI Assistant</div>
-        </div>
+      <button class="pill-btn" id="menuBtn" aria-label="Menu">☰</button>
+
+      <div class="pill-title">
+        <span class="dot"></span>
+        <span>Ritesh.ai</span>
       </div>
-      <div class="status" id="status">Online</div>
+
+      <div class="top-actions">
+        <button class="pill-btn" id="newChatBtn" title="New chat" aria-label="New chat">＋</button>
+        <button class="pill-btn" id="helpBtn" title="Help" aria-label="Help">❓</button>
+      </div>
     </header>
-<!-- Home actions -->
-<div class="home" id="home">
-  <h1 class="home-title">What can I help with?</h1>
 
-  <div class="home-actions">
-    <button class="home-btn" data-prompt="Create an image of">
-      🖼️ Create image
-    </button>
+    <!-- MAIN -->
+    <main class="chat" id="chat">
+      <!-- HOME (shows when no messages) -->
+      <section class="home" id="home">
+        <h1 class="home-title">What can I help with?</h1>
 
-    <button class="home-btn" data-prompt="Help me write about">
-      ✍️ Help me write
-    </button>
+        <div class="quick-grid">
+          <button class="quick" data-prompt="Create an image idea for: ">
+            <span class="q-ic">🖼️</span>
+            <span class="q-txt">Create image</span>
+          </button>
 
-    <button class="home-btn" data-prompt="Summarize this text:">
-      📄 Summarize text
-    </button>
+          <button class="quick" data-prompt="Help me write: ">
+            <span class="q-ic">✍️</span>
+            <span class="q-txt">Help me write</span>
+          </button>
 
-    <button class="home-btn" data-prompt="Surprise me with something interesting">
-      🎁 Surprise me
-    </button>
-  </div>
-</div>
-    <main class="chat" id="chat"></main>
+          <button class="quick" data-prompt="Summarize this: ">
+            <span class="q-ic">🧾</span>
+            <span class="q-txt">Summarize text</span>
+          </button>
 
-    <!-- ChatGPT style composer -->
+          <button class="quick" data-prompt="Surprise me with something useful about: ">
+            <span class="q-ic">🎁</span>
+            <span class="q-txt">Surprise me</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- MESSAGES -->
+      <div id="messages"></div>
+    </main>
+
+    <!-- COMPOSER (ChatGPT style) -->
     <footer class="composer">
       <input type="file" id="fileInput" hidden />
 
@@ -56,7 +70,7 @@
         autocomplete="off"
       />
 
-      <button id="send" class="send-btn" title="Send">➤</button>
+      <button id="send" class="send-btn">➤</button>
     </footer>
   </div>
 
