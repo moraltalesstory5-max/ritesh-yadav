@@ -7,6 +7,18 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="controls">
+  <input id="fileInput" type="file" accept="image/*,.pdf,.doc,.docx,.txt" hidden />
+  <button id="uploadBtn" type="button">📎</button>
+
+  <button id="micBtn" type="button">🎙️</button>
+
+  <input id="input" placeholder="Type your message..." />
+  <button id="send">Send</button>
+</div>
+
+<!-- Optional: preview -->
+<div id="preview" class="preview"></div>
   <div class="app">
     <header class="topbar">
       <div class="brand">
