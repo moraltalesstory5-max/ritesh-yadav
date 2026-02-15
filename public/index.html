@@ -6,7 +6,6 @@
   <title>Ritesh.ai</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
   <div class="app">
 
@@ -27,35 +26,30 @@
 
     <!-- Chat area -->
     <main class="chat" id="chat">
+
       <!-- Home screen -->
       <section class="home" id="home">
         <div class="home-title">What can I help with?</div>
 
         <div class="quick-grid">
           <button class="quick" data-mode="image">
-            <span class="q-ic">🖼️</span>
-            <span class="q-txt">Create image</span>
+            <span class="q-ic">🖼️</span><span class="q-txt">Create image</span>
           </button>
-
           <button class="quick" data-mode="write">
-            <span class="q-ic">✍️</span>
-            <span class="q-txt">Help me write</span>
+            <span class="q-ic">✍️</span><span class="q-txt">Help me write</span>
           </button>
-
           <button class="quick" data-mode="summary">
-            <span class="q-ic">🧾</span>
-            <span class="q-txt">Summarize text</span>
+            <span class="q-ic">📝</span><span class="q-txt">Summarize text</span>
           </button>
-
           <button class="quick" data-mode="surprise">
-            <span class="q-ic">🎁</span>
-            <span class="q-txt">Surprise me</span>
+            <span class="q-ic">🎁</span><span class="q-txt">Surprise me</span>
           </button>
         </div>
       </section>
 
-      <!-- Messages -->
+      <!-- Messages container -->
       <section id="messages"></section>
+
     </main>
 
     <!-- Composer -->
@@ -65,12 +59,7 @@
       <button id="uploadBtn" class="icon-btn" title="Upload">📎</button>
       <button id="micBtn" class="icon-btn" title="Voice">🎙️</button>
 
-      <input
-        id="input"
-        type="text"
-        placeholder="Message Ritesh.ai…"
-        autocomplete="off"
-      />
+      <input id="input" type="text" placeholder="Message Ritesh.ai…" autocomplete="off" />
 
       <button id="send" class="send-btn" title="Send">➤</button>
     </footer>
