@@ -8,6 +8,8 @@
 </head>
 <body>
   <div class="app">
+
+    <!-- TOP BAR -->
     <header class="topbar">
       <div class="brand">
         <div class="logo">🤖</div>
@@ -16,33 +18,28 @@
           <div class="sub">AI Assistant</div>
         </div>
       </div>
-      <div class="status" id="status">Online</div>
+      <div class="status on">Online</div>
     </header>
 
+    <!-- CHAT AREA -->
     <main class="chat" id="chat">
+
       <!-- HOME SCREEN -->
-      <section class="home" id="home" hidden>
+      <section class="home" id="home">
         <div class="home-title">What can I help with?</div>
 
         <div class="quick-grid">
-          <button class="quick" id="qImage" type="button">
-            <span class="q-ic">🖼️</span>
-            <span class="q-txt">Create image</span>
+          <button class="quick" data-text="Create an image">
+            🖼️ Create image
           </button>
-
-          <button class="quick" id="qWrite" type="button">
-            <span class="q-ic">✍️</span>
-            <span class="q-txt">Help me write</span>
+          <button class="quick" data-text="Help me write something">
+            ✍️ Help me write
           </button>
-
-          <button class="quick" id="qSumm" type="button">
-            <span class="q-ic">📝</span>
-            <span class="q-txt">Summarize text</span>
+          <button class="quick" data-text="Summarize this text">
+            📝 Summarize text
           </button>
-
-          <button class="quick" id="qSurp" type="button">
-            <span class="q-ic">🎁</span>
-            <span class="q-txt">Surprise me</span>
+          <button class="quick" data-text="Surprise me">
+            🎁 Surprise me
           </button>
         </div>
       </section>
@@ -53,10 +50,8 @@
 
     <!-- COMPOSER -->
     <footer class="composer">
-      <input type="file" id="fileInput" hidden />
-
-      <button id="uploadBtn" class="icon-btn" title="Upload file" type="button">📎</button>
-      <button id="micBtn" class="icon-btn" title="Voice input" type="button">🎙️</button>
+      <button id="uploadBtn" class="icon-btn">📎</button>
+      <button id="micBtn" class="icon-btn">🎙️</button>
 
       <input
         id="input"
@@ -65,8 +60,9 @@
         autocomplete="off"
       />
 
-      <button id="send" class="send-btn" type="button">➤</button>
+      <button id="send" class="send-btn">➤</button>
     </footer>
+
   </div>
 
   <script src="app.js"></script>
