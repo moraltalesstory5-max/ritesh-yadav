@@ -7,33 +7,35 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="controls">
-  <input id="fileInput" type="file" accept="image/*,.pdf,.doc,.docx,.txt" hidden />
-  <button id="uploadBtn" type="button">📎</button>
-
-  <button id="micBtn" type="button">🎙️</button>
-
-  <input id="input" placeholder="Type your message..." />
-  <button id="send">Send</button>
-</div>
-
-<!-- Optional: preview -->
-<div id="preview" class="preview"></div>
   <div class="app">
     <header class="topbar">
       <div class="brand">
-       <img class="logoImg" src="profile.jpg" alt="Ritesh.ai">
+        <div class="logo">🤖</div>
         <div>
           <div class="title">Ritesh.ai</div>
+          <div class="sub">AI Assistant</div>
+        </div>
       </div>
-      <div class="status" id="status">Offline</div>
+      <div class="status" id="status">Online</div>
     </header>
 
     <main class="chat" id="chat"></main>
 
+    <!-- ChatGPT style composer -->
     <footer class="composer">
-      <input id="input" type="text" placeholder="Type your message..." autocomplete="off" />
-      <button id="send">Send</button>
+      <input type="file" id="fileInput" hidden />
+
+      <button id="uploadBtn" class="icon-btn" title="Upload file">📎</button>
+      <button id="micBtn" class="icon-btn" title="Voice input">🎙️</button>
+
+      <input
+        id="input"
+        type="text"
+        placeholder="Message Ritesh.ai…"
+        autocomplete="off"
+      />
+
+      <button id="send" class="send-btn">➤</button>
     </footer>
   </div>
 
