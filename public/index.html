@@ -6,13 +6,15 @@
   <title>Ritesh.ai</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <div class="app">
-    <!-- TOPBAR -->
-    <header class="topbar">
-      <button class="pill-btn" id="menuBtn" title="Menu">☰</button>
 
-      <div class="pill-title" title="Ritesh.ai">
+    <!-- Top bar -->
+    <header class="topbar">
+      <button class="pill-btn" id="menuBtn" aria-label="Menu">☰</button>
+
+      <div class="pill-title">
         <span class="dot"></span>
         <span>Ritesh.ai</span>
       </div>
@@ -23,7 +25,7 @@
       </div>
     </header>
 
-    <!-- CHAT -->
+    <!-- Chat area -->
     <main class="chat" id="chat">
       <!-- Home screen -->
       <section class="home" id="home">
@@ -31,30 +33,37 @@
 
         <div class="quick-grid">
           <button class="quick" data-mode="image">
-            <span class="q-ic">🖼️</span><span class="q-txt">Create image</span>
+            <span class="q-ic">🖼️</span>
+            <span class="q-txt">Create image</span>
           </button>
+
           <button class="quick" data-mode="write">
-            <span class="q-ic">✍️</span><span class="q-txt">Help me write</span>
+            <span class="q-ic">✍️</span>
+            <span class="q-txt">Help me write</span>
           </button>
+
           <button class="quick" data-mode="summary">
-            <span class="q-ic">📝</span><span class="q-txt">Summarize text</span>
+            <span class="q-ic">🧾</span>
+            <span class="q-txt">Summarize text</span>
           </button>
+
           <button class="quick" data-mode="surprise">
-            <span class="q-ic">🎁</span><span class="q-txt">Surprise me</span>
+            <span class="q-ic">🎁</span>
+            <span class="q-txt">Surprise me</span>
           </button>
         </div>
       </section>
 
-      <!-- messages -->
-      <div id="messages"></div>
+      <!-- Messages -->
+      <section id="messages"></section>
     </main>
 
-    <!-- COMPOSER -->
+    <!-- Composer -->
     <footer class="composer">
       <input type="file" id="fileInput" hidden />
 
-      <button id="uploadBtn" class="icon-btn" title="Upload file">📎</button>
-      <button id="micBtn" class="icon-btn" title="Voice input">🎙️</button>
+      <button id="uploadBtn" class="icon-btn" title="Upload">📎</button>
+      <button id="micBtn" class="icon-btn" title="Voice">🎙️</button>
 
       <input
         id="input"
@@ -63,8 +72,9 @@
         autocomplete="off"
       />
 
-      <button id="send" class="send-btn">➤</button>
+      <button id="send" class="send-btn" title="Send">➤</button>
     </footer>
+
   </div>
 
   <script src="app.js"></script>
