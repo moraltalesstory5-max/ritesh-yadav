@@ -1,103 +1,62 @@
-const chat = document.getElementById("chat");
+const chat = document.getElementById("messages");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("send");
-const uploadBtn = document.getElementById("uploadBtn");
-const fileInput = document.getElementById("fileInput");
-const micBtn = document.getElementById("micBtn");
+const home = document.getElementById("home");
 
-function addMsg(role, text) {
+function addMessage(text, who) {
   const div = document.createElement("div");
-  div.className = "msg " + role;
+  div.className = "msg " + who;
   div.textContent = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-/* ---------------- FILE UPLOAD ---------------- */
-if (uploadBtn && fileInput) {
-  uploadBtn.addEventListener("click", () => fileInput.click());
-
-  fileInput.addEventListener("change", async () => {
-    const file = fileInput.files[0];
-    if (!file) return;
-
-    addMsg(
-      "user",
-      "Uploading: " + file.name + " (" + Math.round(file.size / 1024) + " KB)"
-    );
-
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-
-      const r = await fetch("/api/upload", {
-        method: "POST",
-        body: fd
-      });
-
-      if (!r.ok) throw new Error("Upload failed");
-
-      const data = await r.json();
-      addMsg("ai", "Uploaded: " + (data.originalName || file.name));
-    } catch (e) {
-      addMsg("ai", "Upload error: " + e.message);
-    }
-
-    fileInput.value = "";
-  });
+function hideHome() {
+  if (home) home.style.display = "none";
 }
 
-/* ---------------- VOICE ---------------- */
-function startVoice() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    addMsg("ai", "Voice not supported");
-    return;
-  }
+sendBtn.onclick = sendMessage;
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMessage();
+});
 
-  const rec = new SR();
-  rec.lang = "hi-IN";
-
-  rec.onresult = (e) => {
-    input.value = e.results[0][0].transcript;
+document.querySelectorAll(".quick").forEach(btn => {
+  btn.onclick = () => {
+    input.value = btn.dataset.text;
+    sendMessage();
   };
+});
 
-  rec.start();
-}
-
-if (micBtn) micBtn.addEventListener("click", startVoice);
-
-/* ---------------- CHAT ---------------- */
 async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
 
+  hideHome();
+  addMessage(text, "user");
   input.value = "";
-  addMsg("user", text);
-  sendBtn.disabled = true;
 
+  // typing indicator
   const typing = document.createElement("div");
   typing.className = "msg ai";
-  typing.textContent = "Typing...";
+  typing.textContent = "...";
   chat.appendChild(typing);
 
   try {
-    const r = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
-    });
+    const res = await fetch(
+      "https://ritesh-yadav-production-42f0.up.railway.app/api/chat",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      }
+    );
 
-    const data = await r.json();
-    typing.textContent = data.reply || "No reply";
-  } catch (e) {
-    typing.textContent = "Error";
+    const data = await res.json();
+    typing.remove();
+    addMessage(data.reply || "No reply", "ai");
+
+  } catch (err) {
+    typing.remove();
+    addMessage("❌ Server error", "ai");
   }
-
-  sendBtn.disabled = false;
 }
-
-sendBtn.addEventListener("click", sendMessage);
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
