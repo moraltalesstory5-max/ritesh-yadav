@@ -32,7 +32,21 @@ document.querySelectorAll(".quick").forEach(btn => {
 async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
+// 📎 Upload button
+uploadBtn.addEventListener("click", () => {
+  fileInput.click();
+});
 
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  hideHome();
+  addMessage(📎 File selected: ${file.name}, "user");
+  addMessage("⚠️ Upload backend abhi connect nahi hai.", "ai");
+
+  fileInput.value = "";
+});
   hideHome();
   addMessage(text, "user");
   input.value = "";
