@@ -14,34 +14,55 @@ function addMsg(role, text) {
   return div;
 }
 
+// Guard: agar HTML me buttons missing ho to error na aaye
+if (!chat || !input || !sendBtn) {
+  console.error("Missing required elements: #chat, #input, #send");
+}
+
 /* -------------------- FILE UPLOAD (REAL) -------------------- */
-uploadBtn.addEventListener("click", () => fileInput.click());
+if (uploadBtn && fileInput) {
+  uploadBtn.addEventListener("click", () => fileInput.click());
 
-fileInput.addEventListener("change", async () => {
-  const file = fileInput.files?.[0];
-  if (!file) return;
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
 
-  addMsg("user", 📎 Uploading: ${file.name} (${Math.round(file.size/1024)} KB));
+    addMsg(
+      "user",
+      📎 Uploading: ${file.name} (${Math.round(file.size / 1024)} KB)
+    );
 
-  try {
-    const fd = new FormData();
-    fd.append("file", file);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
 
-    const r = await fetch("/api/upload", {
-      method: "POST",
-      body: fd
-    });
+      const r = await fetch("/api/upload", {
+        method: "POST",
+        body: fd,
+      });
 
-    if (!r.ok) throw new Error("Upload failed: HTTP " + r.status);
-    const data = await r.json();
+      if (!r.ok) {
+        const t = await r.text().catch(() => "");
+        throw new Error(Upload failed: HTTP ${r.status} ${t}.trim());
+      }
 
-    addMsg("ai", ✅ Uploaded: ${data.originalName}\nSaved as: ${data.filename});
-  } catch (e) {
-    addMsg("ai", "❌ Upload error: " + (e?.message || e));
-  } finally {
-    fileInput.value = ""; // reset so same file can be uploaded again
-  }
-});
+      const data = await r.json();
+
+      addMsg(
+        "ai",
+        `✅ Uploaded: ${data.originalName || file.name}\nSaved as: ${
+          data.filename || "(server did not return filename)"
+        }`
+      );
+    } catch (e) {
+      addMsg("ai", "❌ Upload error: " + (e?.message || e));
+    } finally {
+      fileInput.value = ""; // reset so same file can be uploaded again
+    }
+  });
+} else {
+  console.warn("Upload UI not found: #uploadBtn or #fileInput missing in HTML");
+}
 
 /* -------------------- VOICE INPUT (WORKING) -------------------- */
 function startVoice() {
@@ -52,30 +73,29 @@ function startVoice() {
   }
 
   const rec = new SR();
-  rec.lang = "hi-IN";          // Hindi/India
+  rec.lang = "hi-IN";
   rec.interimResults = false;
   rec.maxAlternatives = 1;
 
   addMsg("ai", "🎙️ Listening... bol do");
 
   rec.onresult = (e) => {
-    const text = e.results[0][0].transcript;
-    input.value = text;
+    const text = e.results?.[0]?.[0]?.transcript || "";
+    if (text) input.value = text;
   };
 
   rec.onerror = (e) => {
-    addMsg("ai", "❌ Mic error: " + (e.error || "unknown"));
+    addMsg("ai", "❌ Mic error: " + (e?.error || "unknown"));
   };
 
-  rec.onend = () => {
-    // optional
-  };
-
-  // must be called from button click (user gesture)
-  rec.start();
+  rec.start(); // must be user gesture (button click)
 }
 
-micBtn.addEventListener("click", startVoice);
+if (micBtn) {
+  micBtn.addEventListener("click", startVoice);
+} else {
+  console.warn("Mic UI not found: #micBtn missing in HTML");
+}
 
 /* -------------------- CHAT SEND -------------------- */
 async function sendMessage() {
@@ -92,10 +112,14 @@ async function sendMessage() {
     const r = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({ message: text }),
     });
 
-    if (!r.ok) throw new Error("Chat API error HTTP " + r.status);
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      throw new Error(Chat API error HTTP ${r.status} ${t}.trim());
+    }
+
     const data = await r.json();
     typing.textContent = data.reply || "No reply";
   } catch (e) {
