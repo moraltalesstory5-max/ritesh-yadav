@@ -10,10 +10,14 @@ const micBtn = document.getElementById("micBtn");
 
 const newChatBtn = document.getElementById("newChatBtn");
 
-let selectedFile = null;
+// ✅ IMPORTANT: single API URL (ensure this is correct)
+const API_URL = "https://ritesh-yadav-production-42f0.up.railway.app/api/chat";
 
+let selectedFile = null;
+let selectedFileText = ""; // only for .txt (small)
+
+// ---------- UI helpers ----------
 function updateHomeVisibility() {
-  // ✅ agar ek bhi message hai to home hide
   const hasMsgs = messages && messages.children.length > 0;
   if (home) home.style.display = hasMsgs ? "none" : "flex";
 }
@@ -24,13 +28,9 @@ function scrollToBottom() {
 
 function addMessage(text, who = "user") {
   const div = document.createElement("div");
-
-  // ✅ IMPORTANT: class "ai" hi use karo (bot nahi)
   div.className = "msg " + (who === "ai" ? "ai" : "user");
-
   div.textContent = text;
   messages.appendChild(div);
-
   updateHomeVisibility();
   scrollToBottom();
   return div;
@@ -39,29 +39,20 @@ function addMessage(text, who = "user") {
 function addTyping() {
   const div = document.createElement("div");
   div.className = "msg ai typing";
-  div.innerHTML = <span class="dots"><span></span><span></span><span></span></span>;
+  div.innerHTML = …; // simple typing (you can replace with dots animation)
   messages.appendChild(div);
-
   updateHomeVisibility();
   scrollToBottom();
   return div;
 }
 
 function setBusy(isBusy) {
+  // ✅ only disable send + input (mic/upload selectable)
   sendBtn.disabled = isBusy;
   input.disabled = isBusy;
-  uploadBtn.disabled = isBusy;
-  micBtn.disabled = isBusy;
 }
 
-// ---- Events ----
-sendBtn.addEventListener("click", sendMessage);
-
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
-
-// Quick buttons fill text (optional)
+// ---------- quick buttons (optional) ----------
 document.querySelectorAll(".quick").forEach((btn) => {
   btn.addEventListener("click", () => {
     const mode = btn.dataset.mode;
@@ -76,122 +67,153 @@ document.querySelectorAll(".quick").forEach((btn) => {
   });
 });
 
-// New chat
+// ---------- new chat ----------
 newChatBtn?.addEventListener("click", () => {
   messages.innerHTML = "";
   selectedFile = null;
+  selectedFileText = "";
   fileInput.value = "";
   updateHomeVisibility();
 });
 
-// Upload picker
+// ---------- upload ----------
 uploadBtn.addEventListener("click", () => fileInput.click());
 
-fileInput.addEventListener("change", () => {
+fileInput.addEventListener("change", async () => {
   selectedFile = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
-  if (selectedFile) addMessage(📎 File selected: ${selectedFile.name}, "user");
+  selectedFileText = "";
+
+  if (!selectedFile) return;
+
+  addMessage(📎 Selected: ${selectedFile.name}, "user");
+
+  // ✅ only read .txt files (<= 200KB) into message
+  const isTxt = selectedFile.type === "text/plain" || selectedFile.name.toLowerCase().endsWith(".txt");
+  const maxBytes = 200 * 1024;
+
+  if (isTxt && selectedFile.size <= maxBytes) {
+    selectedFileText = await readFileAsText(selectedFile);
+    addMessage("✅ TXT file ready to send with your next message.", "ai");
+  } else {
+    addMessage("⚠️ File selected. But backend upload support nahi hai. TXT (<=200KB) hi auto-send hoga.", "ai");
+  }
 });
 
-// Voice input (Web Speech API)
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result || ""));
+    r.onerror = () => reject(new Error("File read failed"));
+    r.readAsText(file);
+  });
+}
+
+// ---------- voice ----------
 micBtn.addEventListener("click", () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  // ✅ check secure + support
   if (!SpeechRecognition) {
-    addMessage("❌ Voice not supported in this browser.", "ai");
+    addMessage("❌ Voice not supported. (Use Chrome latest / SpeechRecognition missing)", "ai");
+    return;
+  }
+  if (!window.isSecureContext) {
+    addMessage("❌ Voice needs HTTPS. HTTP pe mic kaam nahi karega.", "ai");
     return;
   }
 
   const rec = new SpeechRecognition();
-  rec.lang = "en-IN"; // change to "hi-IN" if you want Hindi
+  rec.lang = "hi-IN"; // change to "en-IN" if you want English
   rec.interimResults = false;
   rec.maxAlternatives = 1;
 
+  rec.onstart = () => addMessage("🎙️ Listening…", "ai");
   rec.onresult = (event) => {
-    const text = event.results[0][0].transcript;
-    input.value = text;
-    input.focus();
+    const text = event.results?.[0]?.[0]?.transcript || "";
+    if (text.trim()) {
+      input.value = text.trim();
+      input.focus();
+    }
   };
+  rec.onerror = (e) => addMessage("❌ Mic error: " + (e.error || "unknown"), "ai");
+  rec.onend = () => addMessage("✅ Voice stopped.", "ai");
 
-  rec.onerror = (e) => addMessage("❌ Mic error: " + e.error, "ai");
   rec.start();
 });
 
-// ---- Main send ----
+// ---------- send ----------
+sendBtn.addEventListener("click", sendMessage);
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
+
 async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
 
   addMessage(text, "user");
   input.value = "";
-
-  // ✅ Home hide instantly after first message
   updateHomeVisibility();
 
   const typing = addTyping();
   setBusy(true);
 
   try {
-    let res;
+    // ✅ always send JSON (backend simple)
+    const payload = { message: text };
 
-    // If file selected -> try multipart (backend support needed)
-    if (selectedFile) {
-      const form = new FormData();
-      form.append("message", text);
-      form.append("file", selectedFile);
-
-      res = await fetch("https://ritesh-yadav-production-42f0.up.railway.app/api/chat", {
-        method: "POST",
-        body: form
-      });
-
+    // ✅ if TXT file loaded, attach it as extra text
+    if (selectedFileText) {
+      payload.fileName = selectedFile?.name || "";
+      payload.fileText = selectedFileText.slice(0, 15000); // limit
+      // reset after attach
       selectedFile = null;
+      selectedFileText = "";
       fileInput.value = "";
-    } else {
-      res = await fetch("https://ritesh-yadav-production-42f0.up.railway.app/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
-      });
     }
 
-    // Handle non-OK
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    // read response safely
+    const contentType = res.headers.get("content-type") || "";
+
     if (!res.ok) {
-      let errText = "";
-      try {
-        const j = await res.json();
-        errText = j.message || JSON.stringify(j);
-      } catch {
-        errText = await res.text();
+      let errMsg = "";
+      if (contentType.includes("application/json")) {
+        const j = await res.json().catch(() => ({}));
+        errMsg = j.message || JSON.stringify(j);
+      } else {
+        errMsg = await res.text().catch(() => "");
       }
       typing.remove();
-      addMessage(❌ API error ${res.status}: ${errText || "Server not responding"}, "ai");
+      addMessage(❌ API error ${res.status}: ${errMsg || "Server not responding"}, "ai");
       return;
     }
 
-    // Safe JSON parse
-    let data;
-    try {
-      data = await res.json();
-    } catch {
+    if (!contentType.includes("application/json")) {
       const raw = await res.text();
       typing.remove();
-      addMessage("❌ Server returned non-JSON (HTML). Backend fix needed.", "ai");
-      console.log("RAW:", raw);
+      addMessage("❌ Server JSON nahi bhej raha (HTML/other). Backend fix needed.", "ai");
+      console.log("RAW RESPONSE:", raw);
       return;
     }
 
+    const data = await res.json();
     typing.remove();
     addMessage(data.reply || "No reply", "ai");
-
-    // ✅ After AI reply, ensure home stays hidden
     updateHomeVisibility();
 
   } catch (err) {
     typing.remove();
-    addMessage("❌ Server error: " + err.message, "ai");
+    addMessage("❌ Network/Server error: " + err.message, "ai");
   } finally {
     setBusy(false);
   }
 }
 
-// Initial
+// initial
 updateHomeVisibility();
