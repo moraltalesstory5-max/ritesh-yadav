@@ -8,55 +8,50 @@
 </head>
 <body>
   <div class="app">
-    <!-- Topbar (ChatGPT-like pills) -->
+
+    <!-- TOP BAR -->
     <header class="topbar">
-      <button class="pill-btn" id="menuBtn" title="Menu">☰</button>
-
-      <div class="pill-title" title="Ritesh.ai">
-        <span class="dot" id="dot"></span>
-        <span>Ritesh.ai</span>
+      <div class="brand">
+        <div class="logo">🤖</div>
+        <div>
+          <div class="title">Ritesh.ai</div>
+          <div class="sub">AI Assistant</div>
+        </div>
       </div>
-
-      <div class="top-actions">
-        <button class="pill-btn" id="newBtn" title="New chat">＋</button>
-        <button class="pill-btn" id="helpBtn" title="Help">?</button>
-      </div>
+      <div class="status on">Online</div>
     </header>
 
+    <!-- CHAT AREA -->
     <main class="chat" id="chat">
-      <!-- Home screen -->
+
+      <!-- HOME SCREEN -->
       <section class="home" id="home">
         <div class="home-title">What can I help with?</div>
 
         <div class="quick-grid">
-          <button class="quick" data-mode="image" data-text="Create an image idea for: ">
-            <span class="q-ic">🖼️</span><span class="q-txt">Create image</span>
+          <button class="quick" data-text="Create an image">
+            🖼️ Create image
           </button>
-
-          <button class="quick" data-mode="write" data-text="Help me write: ">
-            <span class="q-ic">✍️</span><span class="q-txt">Help me write</span>
+          <button class="quick" data-text="Help me write something">
+            ✍️ Help me write
           </button>
-
-          <button class="quick" data-mode="summarize" data-text="Summarize this: ">
-            <span class="q-ic">🧾</span><span class="q-txt">Summarize text</span>
+          <button class="quick" data-text="Summarize this text">
+            📝 Summarize text
           </button>
-
-          <button class="quick" data-mode="surprise" data-text="Surprise me with something cool.">
-            <span class="q-ic">🎁</span><span class="q-txt">Surprise me</span>
+          <button class="quick" data-text="Surprise me">
+            🎁 Surprise me
           </button>
         </div>
       </section>
 
-      <!-- Messages -->
-      <section id="messages"></section>
+      <!-- MESSAGES -->
+      <div id="messages"></div>
     </main>
 
-    <!-- Composer -->
+    <!-- COMPOSER -->
     <footer class="composer">
-      <input type="file" id="fileInput" hidden />
-
-      <button id="uploadBtn" class="icon-btn" title="Upload file">📎</button>
-      <button id="micBtn" class="icon-btn" title="Voice input">🎙️</button>
+      <button id="uploadBtn" class="icon-btn">📎</button>
+      <button id="micBtn" class="icon-btn">🎙️</button>
 
       <input
         id="input"
@@ -67,6 +62,7 @@
 
       <button id="send" class="send-btn">➤</button>
     </footer>
+
   </div>
 
   <script src="app.js"></script>
