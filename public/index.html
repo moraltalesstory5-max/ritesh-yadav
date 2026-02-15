@@ -1,41 +1,44 @@
 <!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ritesh.ai</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">🤖</div>
+        <div>
+          <div class="title">Ritesh.ai</div>
+          <div class="sub">AI Assistant</div>
+        </div>
+      </div>
+      <div class="status" id="status">Online</div>
+    </header>
 
-<html lang="en">  
-<head>  
-  <meta charset="UTF-8" />  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-  <title>Ritesh.ai</title>  
-  <link rel="stylesheet" href="style.css" />  
-</head>  
-<body>  
-  <div class="app">  
-    <header class="topbar">  
-      <div class="brand">  
-        <div class="logo">🤖</div>  
-        <div>  
-          <div class="title">Ritesh.ai</div>  
-          <div class="sub">AI Assistant</div>  
-        </div>  
-      </div>  
-      <div class="status" id="status">Online</div>  
-    </header>  <main class="chat" id="chat"></main>  
+    <main class="chat" id="chat"></main>
 
-<!-- ChatGPT style composer -->  
-<footer class="composer">  
-  <input type="file" id="fileInput" hidden />  
+    <!-- ChatGPT style composer -->
+    <footer class="composer">
+      <input type="file" id="fileInput" hidden />
 
-  <button id="uploadBtn" class="icon-btn" title="Upload file">📎</button>  
-  <button id="micBtn" class="icon-btn" title="Voice input">🎙️</button>  
+      <button id="uploadBtn" class="icon-btn" title="Upload file">📎</button>
+      <button id="micBtn" class="icon-btn" title="Voice input">🎙️</button>
 
-  <input  
-    id="input"  
-    type="text"  
-    placeholder="Message Ritesh.ai…"  
-    autocomplete="off"  
-  />  
+      <input
+        id="input"
+        type="text"
+        placeholder="Message Ritesh.ai…"
+        autocomplete="off"
+      />
 
-  <button id="send" class="send-btn">➤</button>  
-</footer>
+      <button id="send" class="send-btn">➤</button>
+    </footer>
+  </div>
 
-  </div>    <script src="app.js"></script>  </body>  
+  <script src="app.js"></script>
+</body>
 </html>
