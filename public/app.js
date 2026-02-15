@@ -1,3 +1,5 @@
+const uploadBtn = document.getElementById("uploadBtn");
+const fileInput = document.getElementById("fileInput");
 const chat = document.getElementById("messages");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("send");
