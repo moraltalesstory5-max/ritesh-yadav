@@ -8,55 +8,48 @@
 </head>
 <body>
   <div class="app">
-    <!-- TOP BAR (ChatGPT-like) -->
+    <!-- TOPBAR -->
     <header class="topbar">
-      <button class="pill-btn" id="menuBtn" aria-label="Menu">☰</button>
+      <button class="pill-btn" id="menuBtn" title="Menu">☰</button>
 
-      <div class="pill-title">
+      <div class="pill-title" title="Ritesh.ai">
         <span class="dot"></span>
         <span>Ritesh.ai</span>
       </div>
 
       <div class="top-actions">
-        <button class="pill-btn" id="newChatBtn" title="New chat" aria-label="New chat">＋</button>
-        <button class="pill-btn" id="helpBtn" title="Help" aria-label="Help">❓</button>
+        <button class="pill-btn" id="newChatBtn" title="New chat">＋</button>
+        <button class="pill-btn" id="helpBtn" title="Help">?</button>
       </div>
     </header>
 
-    <!-- MAIN -->
+    <!-- CHAT -->
     <main class="chat" id="chat">
-      <!-- HOME (shows when no messages) -->
+      <!-- Home screen -->
       <section class="home" id="home">
-        <h1 class="home-title">What can I help with?</h1>
+        <div class="home-title">What can I help with?</div>
 
         <div class="quick-grid">
-          <button class="quick" data-prompt="Create an image idea for: ">
-            <span class="q-ic">🖼️</span>
-            <span class="q-txt">Create image</span>
+          <button class="quick" data-mode="image">
+            <span class="q-ic">🖼️</span><span class="q-txt">Create image</span>
           </button>
-
-          <button class="quick" data-prompt="Help me write: ">
-            <span class="q-ic">✍️</span>
-            <span class="q-txt">Help me write</span>
+          <button class="quick" data-mode="write">
+            <span class="q-ic">✍️</span><span class="q-txt">Help me write</span>
           </button>
-
-          <button class="quick" data-prompt="Summarize this: ">
-            <span class="q-ic">🧾</span>
-            <span class="q-txt">Summarize text</span>
+          <button class="quick" data-mode="summary">
+            <span class="q-ic">📝</span><span class="q-txt">Summarize text</span>
           </button>
-
-          <button class="quick" data-prompt="Surprise me with something useful about: ">
-            <span class="q-ic">🎁</span>
-            <span class="q-txt">Surprise me</span>
+          <button class="quick" data-mode="surprise">
+            <span class="q-ic">🎁</span><span class="q-txt">Surprise me</span>
           </button>
         </div>
       </section>
 
-      <!-- MESSAGES -->
+      <!-- messages -->
       <div id="messages"></div>
     </main>
 
-    <!-- COMPOSER (ChatGPT style) -->
+    <!-- COMPOSER -->
     <footer class="composer">
       <input type="file" id="fileInput" hidden />
 
