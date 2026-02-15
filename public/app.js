@@ -11,42 +11,102 @@ function addMsg(role, text) {
   div.textContent = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+  return div;
 }
 
-sendBtn.onclick = () => {
+/* -------------------- FILE UPLOAD (REAL) -------------------- */
+uploadBtn.addEventListener("click", () => fileInput.click());
+
+fileInput.addEventListener("change", async () => {
+  const file = fileInput.files?.[0];
+  if (!file) return;
+
+  addMsg("user", 📎 Uploading: ${file.name} (${Math.round(file.size/1024)} KB));
+
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+
+    const r = await fetch("/api/upload", {
+      method: "POST",
+      body: fd
+    });
+
+    if (!r.ok) throw new Error("Upload failed: HTTP " + r.status);
+    const data = await r.json();
+
+    addMsg("ai", ✅ Uploaded: ${data.originalName}\nSaved as: ${data.filename});
+  } catch (e) {
+    addMsg("ai", "❌ Upload error: " + (e?.message || e));
+  } finally {
+    fileInput.value = ""; // reset so same file can be uploaded again
+  }
+});
+
+/* -------------------- VOICE INPUT (WORKING) -------------------- */
+function startVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    addMsg("ai", "❌ Voice not supported. Use Chrome on Android/PC & HTTPS.");
+    return;
+  }
+
+  const rec = new SR();
+  rec.lang = "hi-IN";          // Hindi/India
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+
+  addMsg("ai", "🎙️ Listening... bol do");
+
+  rec.onresult = (e) => {
+    const text = e.results[0][0].transcript;
+    input.value = text;
+  };
+
+  rec.onerror = (e) => {
+    addMsg("ai", "❌ Mic error: " + (e.error || "unknown"));
+  };
+
+  rec.onend = () => {
+    // optional
+  };
+
+  // must be called from button click (user gesture)
+  rec.start();
+}
+
+micBtn.addEventListener("click", startVoice);
+
+/* -------------------- CHAT SEND -------------------- */
+async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
+
   input.value = "";
   addMsg("user", text);
+  sendBtn.disabled = true;
 
-  // demo AI reply
-  setTimeout(() => {
-    addMsg("ai", "Ritesh boss, ye demo reply hai 🙂");
-  }, 700);
-};
+  const typing = addMsg("ai", "Typing...");
 
-// 📎 File upload
-uploadBtn.onclick = () => fileInput.click();
+  try {
+    const r = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
+    });
 
-fileInput.onchange = () => {
-  const file = fileInput.files[0];
-  if (file) {
-    addMsg("user", 📎 File uploaded: ${file.name});
+    if (!r.ok) throw new Error("Chat API error HTTP " + r.status);
+    const data = await r.json();
+    typing.textContent = data.reply || "No reply";
+  } catch (e) {
+    typing.textContent = "❌ Error: " + (e?.message || e);
+  } finally {
+    sendBtn.disabled = false;
+    input.focus();
   }
-};
-
-// 🎙️ Voice input
-let recognition;
-if ("webkitSpeechRecognition" in window) {
-  recognition = new webkitSpeechRecognition();
-  recognition.lang = "en-IN";
-  recognition.continuous = false;
-
-  micBtn.onclick = () => recognition.start();
-
-  recognition.onresult = (e) => {
-    input.value = e.results[0][0].transcript;
-  };
-} else {
-  micBtn.onclick = () => alert("Voice not supported on this browser");
 }
+
+sendBtn.addEventListener("click", sendMessage);
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
