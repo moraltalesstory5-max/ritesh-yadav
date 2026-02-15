@@ -11,25 +11,19 @@ function addMsg(role, text) {
   div.textContent = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
-  return div;
 }
 
-// Guard: agar HTML me buttons missing ho to error na aaye
-if (!chat || !input || !sendBtn) {
-  console.error("Missing required elements: #chat, #input, #send");
-}
-
-/* -------------------- FILE UPLOAD (REAL) -------------------- */
+/* ---------------- FILE UPLOAD ---------------- */
 if (uploadBtn && fileInput) {
   uploadBtn.addEventListener("click", () => fileInput.click());
 
   fileInput.addEventListener("change", async () => {
-    const file = fileInput.files?.[0];
+    const file = fileInput.files[0];
     if (!file) return;
 
     addMsg(
       "user",
-      📎 Uploading: ${file.name} (${Math.round(file.size / 1024)} KB)
+      "Uploading: " + file.name + " (" + Math.round(file.size / 1024) + " KB)"
     );
 
     try {
@@ -38,66 +32,42 @@ if (uploadBtn && fileInput) {
 
       const r = await fetch("/api/upload", {
         method: "POST",
-        body: fd,
+        body: fd
       });
 
-      if (!r.ok) {
-        const t = await r.text().catch(() => "");
-        throw new Error(Upload failed: HTTP ${r.status} ${t}.trim());
-      }
+      if (!r.ok) throw new Error("Upload failed");
 
       const data = await r.json();
-
-      addMsg(
-        "ai",
-        `✅ Uploaded: ${data.originalName || file.name}\nSaved as: ${
-          data.filename || "(server did not return filename)"
-        }`
-      );
+      addMsg("ai", "Uploaded: " + (data.originalName || file.name));
     } catch (e) {
-      addMsg("ai", "❌ Upload error: " + (e?.message || e));
-    } finally {
-      fileInput.value = ""; // reset so same file can be uploaded again
+      addMsg("ai", "Upload error: " + e.message);
     }
+
+    fileInput.value = "";
   });
-} else {
-  console.warn("Upload UI not found: #uploadBtn or #fileInput missing in HTML");
 }
 
-/* -------------------- VOICE INPUT (WORKING) -------------------- */
+/* ---------------- VOICE ---------------- */
 function startVoice() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
-    addMsg("ai", "❌ Voice not supported. Use Chrome on Android/PC & HTTPS.");
+    addMsg("ai", "Voice not supported");
     return;
   }
 
   const rec = new SR();
   rec.lang = "hi-IN";
-  rec.interimResults = false;
-  rec.maxAlternatives = 1;
-
-  addMsg("ai", "🎙️ Listening... bol do");
 
   rec.onresult = (e) => {
-    const text = e.results?.[0]?.[0]?.transcript || "";
-    if (text) input.value = text;
+    input.value = e.results[0][0].transcript;
   };
 
-  rec.onerror = (e) => {
-    addMsg("ai", "❌ Mic error: " + (e?.error || "unknown"));
-  };
-
-  rec.start(); // must be user gesture (button click)
+  rec.start();
 }
 
-if (micBtn) {
-  micBtn.addEventListener("click", startVoice);
-} else {
-  console.warn("Mic UI not found: #micBtn missing in HTML");
-}
+if (micBtn) micBtn.addEventListener("click", startVoice);
 
-/* -------------------- CHAT SEND -------------------- */
+/* ---------------- CHAT ---------------- */
 async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
@@ -106,28 +76,25 @@ async function sendMessage() {
   addMsg("user", text);
   sendBtn.disabled = true;
 
-  const typing = addMsg("ai", "Typing...");
+  const typing = document.createElement("div");
+  typing.className = "msg ai";
+  typing.textContent = "Typing...";
+  chat.appendChild(typing);
 
   try {
     const r = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify({ message: text })
     });
-
-    if (!r.ok) {
-      const t = await r.text().catch(() => "");
-      throw new Error(Chat API error HTTP ${r.status} ${t}.trim());
-    }
 
     const data = await r.json();
     typing.textContent = data.reply || "No reply";
   } catch (e) {
-    typing.textContent = "❌ Error: " + (e?.message || e);
-  } finally {
-    sendBtn.disabled = false;
-    input.focus();
+    typing.textContent = "Error";
   }
+
+  sendBtn.disabled = false;
 }
 
 sendBtn.addEventListener("click", sendMessage);
