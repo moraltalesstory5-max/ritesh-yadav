@@ -22,7 +22,7 @@ body {
   flex-direction: column;
 }
 
-/* TOP BAR (ChatGPT-like) */
+/* TOP BAR */
 .topbar {
   display: flex;
   align-items: center;
@@ -43,7 +43,6 @@ body {
   font-size: 16px;
   line-height: 1;
 }
-
 .pill-btn:active { transform: scale(0.98); }
 
 .pill-title {
@@ -59,12 +58,6 @@ body {
   min-width: 0;
 }
 
-.pill-title span:last-child {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .dot {
   width: 10px;
   height: 10px;
@@ -78,7 +71,7 @@ body {
   gap: 10px;
 }
 
-/* CHAT AREA */
+/* CHAT */
 .chat {
   flex: 1;
   padding: 16px;
@@ -123,11 +116,7 @@ body {
   cursor: pointer;
   text-align: left;
 }
-
-.quick:hover {
-  background: rgba(255,255,255,0.09);
-}
-
+.quick:hover { background: rgba(255,255,255,0.09); }
 .q-ic { font-size: 20px; }
 .q-txt { font-size: 16px; font-weight: 600; }
 
@@ -135,26 +124,35 @@ body {
 #messages { padding-top: 6px; }
 
 .msg {
-  max-width: 80%;
+  max-width: 82%;
   padding: 12px 14px;
   margin-bottom: 12px;
-  border-radius: 14px;
+  border-radius: 16px;
   line-height: 1.45;
   word-wrap: break-word;
   white-space: pre-wrap;
+  border: 1px solid rgba(255,255,255,0.10);
 }
 
+/* ✅ User bubble dark (no blue) */
 .msg.user {
-  background: #2563eb;
+  background: rgba(255,255,255,0.06);
   margin-left: auto;
   color: #fff;
-  border-top-right-radius: 6px;
+  border-top-right-radius: 8px;
 }
 
+/* ✅ AI bubble */
 .msg.ai {
   background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-top-left-radius: 6px;
+  color: #e5e7eb;
+  border-top-left-radius: 8px;
+}
+
+/* typing */
+.msg.typing {
+  font-weight: 700;
+  letter-spacing: 2px;
 }
 
 /* COMPOSER */
@@ -178,7 +176,7 @@ body {
 }
 
 .composer input[type="text"]:focus {
-  border-color: rgba(37,99,235,0.9);
+  border-color: rgba(255,255,255,0.25);
 }
 
 /* ICON BUTTONS */
@@ -194,11 +192,10 @@ body {
   display: grid;
   place-items: center;
 }
-
 .icon-btn:active { transform: scale(0.98); }
 
 /* SEND */
-.send-btn, #send {
+.send-btn {
   background: #fff;
   border: none;
   color: #000;
@@ -207,13 +204,9 @@ body {
   cursor: pointer;
   min-width: 54px;
   height: 42px;
-  font-weight: 700;
+  font-weight: 800;
 }
-
-.send-btn:disabled, #send:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* MOBILE */
 @media (max-width: 520px) {
