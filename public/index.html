@@ -50,17 +50,26 @@
 
     <!-- COMPOSER -->
     <footer class="composer">
-      <button id="uploadBtn" class="icon-btn">📎</button>
-      <button id="micBtn" class="icon-btn">🎙️</button>
+  <!-- FILE INPUT (HIDDEN) -->
+  <input type="file" id="fileInput" hidden />
 
-      <input
-        id="input"
-        type="text"
-        placeholder="Message Ritesh.ai…"
-        autocomplete="off"
-      />
+  <!-- UPLOAD BUTTON -->
+  <button id="uploadBtn" class="icon-btn" title="Upload">📎</button>
 
-      <button id="send" class="send-btn">➤</button>
+  <!-- VOICE BUTTON -->
+  <button id="micBtn" class="icon-btn" title="Voice">🎙️</button>
+
+  <!-- TEXT INPUT -->
+  <input
+    id="input"
+    type="text"
+    placeholder="Message Ritesh.ai…"
+    autocomplete="off"
+  />
+
+  <!-- SEND BUTTON -->
+  <button id="send" class="send-btn">➤</button>
+</footer>
     </footer>
 
   </div>
