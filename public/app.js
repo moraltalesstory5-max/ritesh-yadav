@@ -3,42 +3,13 @@ const input = document.getElementById("input");
 const sendBtn = document.getElementById("send");
 const home = document.getElementById("home");
 
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-// AI text formatting: paragraphs + line breaks + basic *bold*
-function formatText(text) {
-  if (!text) return "";
-
-  let t = String(text).replace(/\r\n/g, "\n");
-  t = escapeHtml(t);
-
-  // *bold*
-  t = t.replace(/\\(.+?)\\/g, "<b>$1</b>");
-
-  // collapse too many blank lines
-  t = t.replace(/\n{3,}/g, "\n\n");
-
-  // split into paragraphs by blank line
-  const parts = t.split(/\n\s*\n/g).map(p => p.trim()).filter(Boolean);
-
-  // inside paragraph, single newline becomes <br>
-  return parts.map(p => <p>${p.replace(/\n/g, "<br>")}</p>).join("");
-}
-
 function addMessage(text, who) {
   const div = document.createElement("div");
   div.className = "msg " + who;
 
-  // user plain, ai formatted
-  if (who === "ai") div.innerHTML = formatText(text);
-  else div.textContent = text;
+  // Preserve line breaks safely
+  div.style.whiteSpace = "pre-wrap";
+  div.textContent = text;
 
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
@@ -68,11 +39,10 @@ async function sendMessage() {
   addMessage(text, "user");
   input.value = "";
 
-  // typing indicator
   const typing = document.createElement("div");
   typing.className = "msg ai";
+  typing.style.whiteSpace = "pre-wrap";
   typing.textContent = "...";
-  typing.style.opacity = "0.8";
   chat.appendChild(typing);
   chat.scrollTop = chat.scrollHeight;
 
@@ -80,22 +50,24 @@ async function sendMessage() {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 25000);
 
-    const res = await fetch(
-      "https://ritesh-yadav-production-42f0.up.railway.app/api/chat",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
-        signal: controller.signal
-      }
-    );
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text }),
+      signal: controller.signal
+    });
 
     clearTimeout(timer);
+
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      throw new Error("HTTP " + res.status + " " + t);
+    }
 
     const data = await res.json();
     typing.remove();
     addMessage(data.reply || "No reply", "ai");
   } catch (err) {
     typing.remove();
-    addMessage("❌ Server slow / error", "ai");
+    addMessage("❌ Server slow / error\n" + (err?.message || ""), "ai");
   }
