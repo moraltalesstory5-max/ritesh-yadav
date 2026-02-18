@@ -6,11 +6,7 @@ const home = document.getElementById("home");
 function addMessage(text, who) {
   const div = document.createElement("div");
   div.className = "msg " + who;
-
-  // Preserve line breaks safely
-  div.style.whiteSpace = "pre-wrap";
   div.textContent = text;
-
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
@@ -39,35 +35,28 @@ async function sendMessage() {
   addMessage(text, "user");
   input.value = "";
 
+  // typing indicator
   const typing = document.createElement("div");
   typing.className = "msg ai";
-  typing.style.whiteSpace = "pre-wrap";
   typing.textContent = "...";
   chat.appendChild(typing);
-  chat.scrollTop = chat.scrollHeight;
 
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 25000);
-
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
-      signal: controller.signal
-    });
-
-    clearTimeout(timer);
-
-    if (!res.ok) {
-      const t = await res.text().catch(() => "");
-      throw new Error("HTTP " + res.status + " " + t);
-    }
+    const res = await fetch(
+      "https://ritesh-yadav-production-42f0.up.railway.app/api/chat",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      }
+    );
 
     const data = await res.json();
     typing.remove();
     addMessage(data.reply || "No reply", "ai");
+
   } catch (err) {
     typing.remove();
-    addMessage("❌ Server slow / error\n" + (err?.message || ""), "ai");
+    addMessage("❌ Server error", "ai");
   }
+}
