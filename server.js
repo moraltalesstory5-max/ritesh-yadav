@@ -13,17 +13,17 @@ app.use(express.static(path.join(__dirname, "public")));
 app.post("/api/chat", async (req, res) => {
   try {
     const message = String(req.body?.message || "").trim();
-    if (!message) return res.status(400).send("Message empty");
+    if (!message) return res.status(400).json({ reply: "Kuch likho bhai!" });
 
     const key = String(process.env.GEMINI_API_KEY || "").trim();
-    if (!key) return res.status(500).send("API Key missing");
+    if (!key) return res.status(500).json({ reply: "API Key missing hai!" });
 
-    // ⚡ Gemini 1.5 Flash Model (Fastest) use kar rahe hain
-    const url = https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${key};
+    // ✅ Gemini 1.5 Flash: Ye bohot fast hai
+    const url = https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key};
 
     const body = {
       system_instruction: {
-        parts: [{ text: "You are Ritesh.ai. Reply in Hinglish. Be helpful and fast." }]
+        parts: [{ text: "You are Ritesh.ai. Reply in Hinglish. Keep it short and fast." }]
       },
       contents: [{ role: "user", parts: [{ text: message }] }]
     };
@@ -34,43 +34,21 @@ app.post("/api/chat", async (req, res) => {
       body: JSON.stringify(body)
     });
 
-    // Headers for Streaming
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Transfer-Encoding', 'chunked');
+    const data = await resp.json();
 
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true });
-
-      // ✅ Sabse important fix: JSON chunks se "text" nikalna bina crash hue
-      const lines = chunk.split('\n');
-      for (const line of lines) {
-        // Regex use kar rahe hain taaki agar JSON adhura ho tab bhi text mil jaye
-        const match = line.match(/"text":\s*"(.*?)"/);
-        if (match && match[1]) {
-          let cleanText = match[1]
-            .replace(/\\n/g, '\n')
-            .replace(/\\"/g, '"');
-          res.write(cleanText); // Frontend ko ek-ek word jayega
-        }
-      }
+    if (!resp.ok) {
+      return res.status(resp.status).json({ reply: "Gemini error: " + (data.error?.message || "Unknown error") });
     }
-    res.end();
+
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No reply from AI.";
+    
+    // Seedha JSON reply bhejo
+    return res.json({ reply });
 
   } catch (e) {
-    console.error(e);
-    if (!res.headersSent) res.status(500).send("Server Error: " + e.message);
-    else res.end();
+    console.error("Server Error:", e);
+    return res.status(500).json({ reply: "Server error: " + e.message });
   }
 });
 
-app.get("/health", (req, res) => res.send("OK"));
-
-app.listen(PORT, () => {
-  console.log("✅ Ritesh.ai Fixed on http://localhost:" + PORT);
-});
+app.listen(PORT, () => console.log("✅ Stable Ritesh.ai running on port " + PORT));
