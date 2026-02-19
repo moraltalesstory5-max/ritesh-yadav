@@ -87,6 +87,16 @@ async function sendMessage() {
       .replace(/#{1,6}\s?/g, "") // headings हटाओ
       .replace(/\n{3,}/g, "\n\n")
       .trim();
+reply = String(reply || "")
+  .replace(/#{1,6}\s?/g, "")   // headings hatao
+  .replace(/\n{3,}/g, "\n\n") // extra blank lines hatao
+  .trim();
+
+// 🔒 HARD LIMIT (detail kam karne ke liye)
+const MAX_CHARS = 900;
+if (reply.length > MAX_CHARS) {
+  reply = reply.slice(0, MAX_CHARS).trim() + "\n\n…(short reply)";
+}
 
     addMessage(reply, "ai");
   } catch (err) {
