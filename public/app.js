@@ -6,7 +6,11 @@ const home = document.getElementById("home");
 function addMessage(text, who) {
   const div = document.createElement("div");
   div.className = "msg " + who;
-  div.textContent = text;
+
+  // ✅ paragraph + line breaks sahi dikhेंगे
+  div.style.whiteSpace = "pre-wrap";
+  div.textContent = String(text || "");
+
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
@@ -27,36 +31,70 @@ document.querySelectorAll(".quick").forEach(btn => {
   };
 });
 
+// ✅ request spam रोकने के लिए
+let busy = false;
+
 async function sendMessage() {
   const text = input.value.trim();
-  if (!text) return;
+  if (!text || busy) return;
+
+  busy = true;
+  sendBtn.disabled = true;
 
   hideHome();
   addMessage(text, "user");
   input.value = "";
 
-  // typing indicator
   const typing = document.createElement("div");
   typing.className = "msg ai";
-  typing.textContent = "...";
+  typing.style.whiteSpace = "pre-wrap";
+  typing.textContent = "Typing…";
   chat.appendChild(typing);
+  chat.scrollTop = chat.scrollHeight;
+
+  // ✅ “late feel” कम करने के लिए live dots
+  let dots = 0;
+  const dotTimer = setInterval(() => {
+    dots = (dots + 1) % 4;
+    typing.textContent = "Typing" + ".".repeat(dots);
+  }, 350);
 
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25000);
+
     const res = await fetch(
       "https://ritesh-yadav-production-42f0.up.railway.app/api/chat",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({ message: text }),
+        signal: controller.signal
       }
     );
 
-    const data = await res.json();
-    typing.remove();
-    addMessage(data.reply || "No reply", "ai");
+    clearTimeout(timer);
 
-  } catch (err) {
+    const data = await res.json().catch(() => ({}));
+
+    clearInterval(dotTimer);
     typing.remove();
-    addMessage("❌ Server error", "ai");
+
+    // ✅ server se markdown aa raha ho to client-side clean
+    let reply = String(data.reply || "No reply");
+    reply = reply
+      .replace(/\\/g, "")      // *bold* हटाओ
+      .replace(/#{1,6}\s?/g, "") // headings हटाओ
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
+    addMessage(reply, "ai");
+  } catch (err) {
+    clearInterval(dotTimer);
+    typing.remove();
+    addMessage("❌ Server slow / error. Try again.", "ai");
+  } finally {
+    busy = false;
+    sendBtn.disabled = false;
   }
 }
