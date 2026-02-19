@@ -2,7 +2,9 @@ const chat = document.getElementById("messages");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("send");
 const home = document.getElementById("home");
-
+const micBtn = document.getElementById("micBtn");
+const uploadBtn = document.getElementById("uploadBtn");
+const fileInput = document.getElementById("fileInput");
 function addMessage(text, who) {
   const div = document.createElement("div");
   div.className = "msg " + who;
