@@ -2,21 +2,37 @@ const chat = document.getElementById("messages");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("send");
 const home = document.getElementById("home");
-
+const uploadBtn = document.getElementById("uploadBtn");
+const fileInput = document.getElementById("fileInput");
 function addMessage(text, who) {
   const div = document.createElement("div");
   div.className = "msg " + who;
+
+  // ✅ paragraph + line breaks sahi dikhेंगे
   div.style.whiteSpace = "pre-wrap";
-  div.textContent = text;
+  div.textContent = String(text || "");
+
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
-  return div;
 }
 
 function hideHome() {
   if (home) home.style.display = "none";
 }
 
+sendBtn.onclick = sendMessage;
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+document.querySelectorAll(".quick").forEach(btn => {
+  btn.onclick = () => {
+    input.value = btn.dataset.text;
+    sendMessage();
+  };
+});
+
+// ✅ request spam रोकने के लिए
 let busy = false;
 
 async function sendMessage() {
@@ -25,42 +41,90 @@ async function sendMessage() {
 
   busy = true;
   sendBtn.disabled = true;
+
   hideHome();
   addMessage(text, "user");
   input.value = "";
 
-  // Placeholder for AI reply
-  const aiMsgDiv = addMessage("...", "ai");
-  aiMsgDiv.textContent = ""; 
+  const typing = document.createElement("div");
+  typing.className = "msg ai";
+  typing.style.whiteSpace = "pre-wrap";
+  typing.textContent = "Typing…";
+  chat.appendChild(typing);
+  chat.scrollTop = chat.scrollHeight;
+
+  // ✅ “late feel” कम करने के लिए live dots
+  let dots = 0;
+  const dotTimer = setInterval(() => {
+    dots = (dots + 1) % 4;
+    typing.textContent = "Typing" + ".".repeat(dots);
+  }, 350);
 
   try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25000);
 
-    if (!res.ok) throw new Error("Server error");
+    const res = await fetch(
+      "https://ritesh-yadav-production-42f0.up.railway.app/api/chat",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+        signal: controller.signal
+      }
+    );
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
+    clearTimeout(timer);
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    const data = await res.json().catch(() => ({}));
 
-      const chunk = decoder.decode(value, { stream: true });
-      aiMsgDiv.textContent += chunk; // Shabd judte jayenge
-      chat.scrollTop = chat.scrollHeight;
-    }
+    clearInterval(dotTimer);
+    typing.remove();
 
+    // ✅ server se markdown aa raha ho to client-side clean
+    let reply = String(data.reply || "No reply");
+    reply = reply
+      .replace(/\\/g, "")      // bold हटाओ
+      .replace(/#{1,6}\s?/g, "") // headings हटाओ
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+reply = String(reply || "")
+  .replace(/#{1,6}\s?/g, "")
+  .replace(/\n{3,}/g, "\n\n")
+  .trim();
+
+// ✅ Short mode settings
+const MAX_LINES = 6;     // max 6 lines
+const MAX_CHARS = 320;   // max 320 characters
+
+// 1) limit lines
+reply = reply.split("\n").slice(0, MAX_LINES).join("\n").trim();
+
+// 2) limit characters
+if (reply.length > MAX_CHARS) {
+  reply = reply.slice(0, MAX_CHARS).trim() + "…";
+}
+    addMessage(reply, "ai");
   } catch (err) {
-    aiMsgDiv.textContent = "❌ Error: Connection slow ya server down hai.";
+    clearInterval(dotTimer);
+    typing.remove();
+    addMessage("❌ Server slow / error. Try again.", "ai");
   } finally {
     busy = false;
     sendBtn.disabled = false;
   }
 }
+// ===== UPLOAD =====
+if (uploadBtn && fileInput) {
+  uploadBtn.addEventListener("click", () => fileInput.click());
 
-sendBtn.onclick = sendMessage;
-input.onkeydown = (e) => { if (e.key === "Enter") sendMessage(); };
+  fileInput.addEventListener("change", () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (!f) return;
+
+    // Abhi sirf select confirm (server pe upload nahi bhej rahe)
+    addMessage("📎 Selected: " + f.name, "user");
+
+    fileInput.value = "";
+  });
+}
