@@ -90,6 +90,11 @@ body {
   padding: 12px;
   margin-bottom: 12px;
   border-radius: 14px;
+
+  /* 👇 YE ADD KARO */
+  white-space: pre-wrap;   /* paragraph + line break sahi */
+  word-wrap: break-word;
+  line-height: 1.5;
 }
 
 .msg.user {
