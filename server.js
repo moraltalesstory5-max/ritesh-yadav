@@ -13,42 +13,60 @@ app.use(express.static(path.join(__dirname, "public")));
 app.post("/api/chat", async (req, res) => {
   try {
     const message = String(req.body?.message || "").trim();
-    if (!message) return res.status(400).json({ reply: "Kuch likho bhai!" });
+    if (!message) return res.json({ reply: "Ritesh boss, kuch likho 🙂" });
 
     const key = String(process.env.GEMINI_API_KEY || "").trim();
-    if (!key) return res.status(500).json({ reply: "API Key missing hai!" });
+    if (!key) {
+      return res.status(500).json({
+        reply: "Ritesh boss, GEMINI_API_KEY missing hai. .env me key paste karo aur server restart karo."
+      });
+    }
 
-    // ✅ Gemini 1.5 Flash: Ye bohot fast hai
-    const url = https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key};
+    // ✅ Official Gemini API REST endpoint + model (as per docs example)
+    const url =
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent"; // 1
 
     const body = {
       system_instruction: {
-        parts: [{ text: "You are Ritesh.ai. Reply in Hinglish. Keep it short and fast." }]
+        parts: [{ text: "You are Ritesh.ai. Reply in Hinglish. Be helpful, clear, practical." }]
       },
-      contents: [{ role: "user", parts: [{ text: message }] }]
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: message }]
+        }
+      ]
     };
 
     const resp = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": key
+      },
       body: JSON.stringify(body)
     });
 
     const data = await resp.json();
 
     if (!resp.ok) {
-      return res.status(resp.status).json({ reply: "Gemini error: " + (data.error?.message || "Unknown error") });
+      // Gemini returns { error: { message, ... } }
+      const msg = data?.error?.message || JSON.stringify(data);
+      return res.status(resp.status).json({ reply: "Ritesh boss, Gemini error: " + msg });
     }
 
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No reply from AI.";
-    
-    // Seedha JSON reply bhejo
-    return res.json({ reply });
+    const reply =
+      data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ||
+      "Ritesh boss, empty reply aaya 😕";
 
+    return res.json({ reply });
   } catch (e) {
-    console.error("Server Error:", e);
-    return res.status(500).json({ reply: "Server error: " + e.message });
+    return res.status(500).json({ reply: "Ritesh boss, server error: " + (e?.message || e) });
   }
 });
 
-app.listen(PORT, () => console.log("✅ Stable Ritesh.ai running on port " + PORT));
+app.get("/health", (req, res) => res.send("OK"));
+
+app.listen(PORT, () => {
+  console.log("✅ Ritesh.ai running at http://localhost:" + PORT);
+});
