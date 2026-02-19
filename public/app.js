@@ -2,7 +2,6 @@ const chat = document.getElementById("messages");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("send");
 const home = document.getElementById("home");
-const micBtn = document.getElementById("micBtn");
 const uploadBtn = document.getElementById("uploadBtn");
 const fileInput = document.getElementById("fileInput");
 function addMessage(text, who) {
@@ -127,32 +126,5 @@ if (uploadBtn && fileInput) {
     addMessage("📎 Selected: " + f.name, "user");
 
     fileInput.value = "";
-  });
-}
-
-// ===== MIC (Speech to Text) =====
-if (micBtn) {
-  micBtn.addEventListener("click", async () => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return addMessage("❌ Mic not supported in this browser", "ai");
-
-    try {
-      // permission trigger (chrome)
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch (e) {
-      return addMessage("❌ Mic permission denied", "ai");
-    }
-
-    const rec = new SR();
-    rec.lang = "hi-IN";
-    rec.interimResults = false;
-
-    rec.onresult = (e) => {
-      const text = e.results?.[0]?.[0]?.transcript || "";
-      input.value = text.trim(); // input box me aa jayega
-    };
-
-    rec.onerror = () => addMessage("❌ Mic error", "ai");
-    rec.start();
   });
 }
