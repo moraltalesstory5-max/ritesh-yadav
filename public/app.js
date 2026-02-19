@@ -2,11 +2,16 @@ const chat = document.getElementById("messages");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("send");
 const home = document.getElementById("home");
-
+const uploadBtn = document.getElementById("uploadBtn");
+const fileInput = document.getElementById("fileInput");
 function addMessage(text, who) {
   const div = document.createElement("div");
   div.className = "msg " + who;
-  div.textContent = text;
+
+  // ✅ paragraph + line breaks sahi dikhेंगे
+  div.style.whiteSpace = "pre-wrap";
+  div.textContent = String(text || "");
+
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
@@ -27,36 +32,99 @@ document.querySelectorAll(".quick").forEach(btn => {
   };
 });
 
+// ✅ request spam रोकने के लिए
+let busy = false;
+
 async function sendMessage() {
   const text = input.value.trim();
-  if (!text) return;
+  if (!text || busy) return;
+
+  busy = true;
+  sendBtn.disabled = true;
 
   hideHome();
   addMessage(text, "user");
   input.value = "";
 
-  // typing indicator
   const typing = document.createElement("div");
   typing.className = "msg ai";
-  typing.textContent = "...";
+  typing.style.whiteSpace = "pre-wrap";
+  typing.textContent = "Typing…";
   chat.appendChild(typing);
+  chat.scrollTop = chat.scrollHeight;
+
+  // ✅ “late feel” कम करने के लिए live dots
+  let dots = 0;
+  const dotTimer = setInterval(() => {
+    dots = (dots + 1) % 4;
+    typing.textContent = "Typing" + ".".repeat(dots);
+  }, 350);
 
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25000);
+
     const res = await fetch(
       "https://ritesh-yadav-production-42f0.up.railway.app/api/chat",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({ message: text }),
+        signal: controller.signal
       }
     );
 
-    const data = await res.json();
-    typing.remove();
-    addMessage(data.reply || "No reply", "ai");
+    clearTimeout(timer);
 
-  } catch (err) {
+    const data = await res.json().catch(() => ({}));
+
+    clearInterval(dotTimer);
     typing.remove();
-    addMessage("❌ Server error", "ai");
+
+    // ✅ server se markdown aa raha ho to client-side clean
+    let reply = String(data.reply || "No reply");
+    reply = reply
+      .replace(/\\/g, "")      // bold हटाओ
+      .replace(/#{1,6}\s?/g, "") // headings हटाओ
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+reply = String(reply || "")
+  .replace(/#{1,6}\s?/g, "")
+  .replace(/\n{3,}/g, "\n\n")
+  .trim();
+
+// ✅ Short mode settings
+const MAX_LINES = 6;     // max 6 lines
+const MAX_CHARS = 320;   // max 320 characters
+
+// 1) limit lines
+reply = reply.split("\n").slice(0, MAX_LINES).join("\n").trim();
+
+// 2) limit characters
+if (reply.length > MAX_CHARS) {
+  reply = reply.slice(0, MAX_CHARS).trim() + "…";
+}
+    addMessage(reply, "ai");
+  } catch (err) {
+    clearInterval(dotTimer);
+    typing.remove();
+    addMessage("❌ Server slow / error. Try again.", "ai");
+  } finally {
+    busy = false;
+    sendBtn.disabled = false;
   }
+}
+// ===== UPLOAD =====
+if (uploadBtn && fileInput) {
+  uploadBtn.addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (!f) return;
+
+    // Abhi sirf select confirm (server pe upload nahi bhej rahe)
+    addMessage("📎 Selected: " + f.name, "user");
+
+    fileInput.value = "";
+  });
 }
