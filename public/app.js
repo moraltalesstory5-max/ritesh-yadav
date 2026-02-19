@@ -88,16 +88,21 @@ async function sendMessage() {
       .replace(/\n{3,}/g, "\n\n")
       .trim();
 reply = String(reply || "")
-  .replace(/#{1,6}\s?/g, "")   // headings hatao
-  .replace(/\n{3,}/g, "\n\n") // extra blank lines hatao
+  .replace(/#{1,6}\s?/g, "")
+  .replace(/\n{3,}/g, "\n\n")
   .trim();
 
-// 🔒 HARD LIMIT (detail kam karne ke liye)
-const MAX_CHARS = 900;
-if (reply.length > MAX_CHARS) {
-  reply = reply.slice(0, MAX_CHARS).trim() + "\n\n…(short reply)";
-}
+// ✅ Short mode settings
+const MAX_LINES = 6;     // max 6 lines
+const MAX_CHARS = 320;   // max 320 characters
 
+// 1) limit lines
+reply = reply.split("\n").slice(0, MAX_LINES).join("\n").trim();
+
+// 2) limit characters
+if (reply.length > MAX_CHARS) {
+  reply = reply.slice(0, MAX_CHARS).trim() + "…";
+}
     addMessage(reply, "ai");
   } catch (err) {
     clearInterval(dotTimer);
